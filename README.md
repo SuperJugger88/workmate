@@ -1,9 +1,15 @@
 ### Building and running your application
 
 When you're ready, start your application by running:
-`docker compose up --build`.
+`make up`.
 
-Your application will be available at http://localhost:4000.
+Your services will be available at following routes: 
+
+`
+http://localhost/tasks/* - Application API Endpoints
+http://localhost/swagger - Swagger Specs
+http://localhost/admin/* - Caddy Admin Endpoints
+`
 
 ### Deploying your application to the cloud
 

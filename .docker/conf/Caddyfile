@@ -1,0 +1,27 @@
+{
+    admin :2019
+    debug
+}
+
+:80 {
+
+    redir /swagger /swagger/
+    handle_path /swagger/* {
+
+        reverse_proxy swagger-ui:8080
+    }
+
+    redir /admin /admin/
+    handle_path /admin/* {
+        reverse_proxy localhost:2019
+
+        basic_auth {
+            admin $2y$05$ojZk1Sjy/vL3Gcl7LlbfseO5HQOKXoT8CRrf4c9E29FhwXIqkcLby
+        }
+    }
+
+    handle {
+
+        reverse_proxy app:4000
+    }
+}

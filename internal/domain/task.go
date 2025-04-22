@@ -2,33 +2,26 @@ package domain
 
 import (
 	"time"
-
-	"github.com/google/uuid"
-)
-
-type TaskStatus string
-
-const (
-	StatusPending   TaskStatus = "pending"
-	StatusRunning   TaskStatus = "running"
-	StatusCompleted TaskStatus = "completed"
-	StatusFailed    TaskStatus = "failed"
+	"workmate/internal/entity"
 )
 
 type Task struct {
-	ID        string     `json:"id"`
-	Status    TaskStatus `json:"status"`
-	Result    string     `json:"result,omitempty"`
-	Error     string     `json:"error,omitempty"`
-	CreatedAt time.Time  `json:"created_at"`
-	UpdatedAt time.Time  `json:"updated_at"`
+	entity.Task
 }
 
-func NewTask() *Task {
-	return &Task{
-		ID:        uuid.New().String(),
-		Status:    StatusPending,
-		CreatedAt: time.Now().UTC(),
-		UpdatedAt: time.Now().UTC(),
-	}
+func (t *Task) StartProcessing() {
+	t.Status = entity.StatusRunning
+	t.UpdatedAt = time.Now().UTC()
+}
+
+func (t *Task) Complete(result string) {
+	t.Status = entity.StatusCompleted
+	t.Result = result
+	t.UpdatedAt = time.Now().UTC()
+}
+
+func (t *Task) Fail(err error) {
+	t.Status = entity.StatusFailed
+	t.Error = err.Error()
+	t.UpdatedAt = time.Now().UTC()
 }

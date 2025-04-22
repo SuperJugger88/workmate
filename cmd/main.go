@@ -10,12 +10,16 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	_ "github.com/lib/pq"
 	"workmate/internal/api"
 	"workmate/internal/repository"
 	"workmate/internal/service"
 	"workmate/pkg"
 )
 
+// @title Task API
+// @version 1.0
+// @description API for managing long-running tasks
 func main() {
 	// Инициализация БД
 	db, err := pkg.InitDB()
@@ -29,24 +33,28 @@ func main() {
 	taskService := service.NewTaskService(taskRepo)
 	handler := api.NewTaskHandler(taskService)
 
-	// Настройка роутера
+	// Роутер с Swagger
 	router := mux.NewRouter()
 	router.HandleFunc("/tasks", handler.CreateTask).Methods("POST")
 	router.HandleFunc("/tasks/{id}", handler.GetTaskStatus).Methods("GET")
+	router.HandleFunc("/tasks/status/{status}", handler.ListTasksByStatus).Methods("GET")
 
-	// Запуск сервера
+	// Swagger
+	router.PathPrefix("/swagger/").Handler(http.StripPrefix("/swagger/", http.FileServer(http.Dir("./docs"))))
+
+	// Сервер
 	server := &http.Server{
-		Addr:    os.Getenv("APP_PORT"),
+		Addr:    ":" + os.Getenv("APP_PORT"),
 		Handler: router,
 	}
 
+	// Graceful shutdown
 	go func() {
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("Server error: %v", err)
 		}
 	}()
 
-	// Graceful shutdown
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit

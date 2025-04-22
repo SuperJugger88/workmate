@@ -4,8 +4,6 @@ import (
 	"database/sql"
 	"fmt"
 	"os"
-
-	_ "github.com/lib/pq"
 )
 
 func InitDB() (*sql.DB, error) {
@@ -27,7 +25,6 @@ func InitDB() (*sql.DB, error) {
 		return nil, err
 	}
 
-	// Миграции
 	_, err = db.Exec(`
 		CREATE TABLE IF NOT EXISTS tasks (
 			id TEXT PRIMARY KEY,

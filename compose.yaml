@@ -8,12 +8,45 @@
 # database or a cache. For examples, see the Awesome Compose repository:
 # https://github.com/docker/awesome-compose
 services:
-  server:
+  web:
+    image: caddy:2.9.1-alpine
+    restart: unless-stopped
+    cap_add:
+      - NET_ADMIN
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    develop:
+      watch:
+        - action: sync+restart
+          path: .docker/conf
+          target: /etc/caddy
+    volumes:
+      - ./.docker/conf:/etc/caddy
+      - caddy_data:/data
+      - caddy_config:/config
+  app:
     build:
+      dockerfile: .docker/app.Dockerfile
       context: .
       target: final
-    ports:
-      - '4000:4000'
+    env_file:
+      - .env
+    develop:
+      watch:
+        - action: rebuild
+          path: .
+          ignore:
+            - .dockerignore
+            - .env.example
+            - .gitignore
+            - .github
+            - README.md
+            - LICENSE
+            - .docker/conf
+            - docs
+            - tests
     depends_on:
       db:
         condition: service_healthy
@@ -26,14 +59,27 @@ services:
    environment:
      - POSTGRES_DB=${DB_NAME}
      - POSTGRES_PASSWORD=${DB_PASSWORD}
-   expose:
-     - 5432
+   ports:
+     - '127.0.0.1:5432:5432'
    healthcheck:
      test: [ "CMD", "pg_isready" ]
      interval: 10s
      timeout: 5s
      retries: 5
+  swagger-ui:
+    image: swaggerapi/swagger-ui:v5.20.2
+    environment:
+      SWAGGER_JSON: /oas/swagger.json
+    develop:
+      watch:
+        - action: sync+restart
+          path: docs
+          target: /oas
+    volumes:
+      - ./docs:/oas
 
 volumes:
   db-data:
+  caddy_data:
+  caddy_config:
 
