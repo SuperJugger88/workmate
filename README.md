@@ -6,9 +6,9 @@ When you're ready, start your application by running:
 Your services will be available at following routes: 
 
 `
-http://localhost/tasks/* - Application API Endpoints
-http://localhost/swagger - Swagger Specs
-http://localhost/admin/* - Caddy Admin Endpoints
+http://localhost/tasks/*     - Application API Endpoints    
+http://localhost/swagger     - Swagger Specs    
+http://localhost/admin/*     - Caddy Admin Endpoints    
 `
 
 ### Deploying your application to the cloud
