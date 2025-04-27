@@ -1,0 +1,22 @@
+apiVersion: skaffold/v4beta11
+kind: Config
+metadata:
+  name: workmate
+build:
+  artifacts:
+    - image: workmate-app
+      context: .
+      docker:
+        dockerfile: .docker/app.Dockerfile
+  local:
+    useBuildkit: true
+    push: false
+deploy:
+  kubectl:
+    flags:
+      apply:
+        - --namespace=workmate
+manifests:
+  kustomize:
+    paths:
+      - .

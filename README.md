@@ -1,7 +1,7 @@
 ### Building and running your application
 
 When you're ready, start your application by running:
-`make up`.
+`make dc`.
 
 Your services will be available at following routes: 
 

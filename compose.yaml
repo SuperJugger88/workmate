@@ -24,8 +24,8 @@ services:
           target: /etc/caddy
     volumes:
       - ./.docker/conf:/etc/caddy
-      - caddy_data:/data
-      - caddy_config:/config
+      - web_data:/data
+      - web_config:/config
   app:
     build:
       dockerfile: .docker/app.Dockerfile
@@ -80,6 +80,6 @@ services:
 
 volumes:
   db-data:
-  caddy_data:
-  caddy_config:
+  web_data:
+  web_config:
 

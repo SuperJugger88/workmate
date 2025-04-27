@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"log"
 	"net/http"
 	"os"
@@ -28,6 +30,10 @@ func main() {
 	}
 	defer db.Close()
 
+	// Регистрируем метрики
+	prometheus.MustRegister(pkg.TaskStatus)
+	prometheus.MustRegister(pkg.RequestDuration)
+
 	// Инициализация слоев
 	taskRepo := repository.NewTaskRepository(db)
 	taskService := service.NewTaskService(taskRepo)
@@ -41,6 +47,9 @@ func main() {
 
 	// Swagger
 	router.PathPrefix("/swagger/").Handler(http.StripPrefix("/swagger/", http.FileServer(http.Dir("./docs"))))
+
+	// Metrics
+	http.Handle("/metrics", promhttp.Handler())
 
 	// Сервер
 	server := &http.Server{
