@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -35,7 +36,10 @@ func (h *TaskHandler) CreateTask(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(map[string]string{"task_id": task.ID})
+	err = json.NewEncoder(w).Encode(map[string]string{"task_id": task.ID})
+	if err != nil {
+		log.Fatalf("Failed to encode task response: %v", err)
+	}
 }
 
 // GetTaskStatus godoc
@@ -58,7 +62,10 @@ func (h *TaskHandler) GetTaskStatus(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(task)
+	err = json.NewEncoder(w).Encode(task)
+	if err != nil {
+		log.Fatalf("Failed to encode task response: %v", err)
+	}
 }
 
 // ListTasksByStatus godoc
@@ -86,7 +93,10 @@ func (h *TaskHandler) ListTasksByStatus(w http.ResponseWriter, r *http.Request) 
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(tasks)
+	err = json.NewEncoder(w).Encode(tasks)
+	if err != nil {
+		log.Fatalf("Failed to encode task response: %v", err)
+	}
 }
 
 func isValidStatus(s entity.TaskStatus) bool {

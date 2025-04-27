@@ -3,15 +3,16 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"log"
 	"time"
 	"workmate/internal/entity"
 )
 
 type TaskRepository interface {
-	Create(ctx context.Context, task *entity.Task) error
-	GetByID(ctx context.Context, id string) (*entity.Task, error)
-	Update(ctx context.Context, task *entity.Task) error
-	ListByStatus(ctx context.Context, status entity.TaskStatus) ([]*entity.Task, error)
+	Create(ctx context.Context, task *entity.TaskEntity) error
+	GetByID(ctx context.Context, id string) (*entity.TaskEntity, error)
+	Update(ctx context.Context, task *entity.TaskEntity) error
+	ListByStatus(ctx context.Context, status entity.TaskStatus) ([]*entity.TaskEntity, error)
 }
 
 type PostgresTaskRepository struct {
@@ -22,7 +23,7 @@ func NewTaskRepository(db *sql.DB) TaskRepository {
 	return &PostgresTaskRepository{db: db}
 }
 
-func (r *PostgresTaskRepository) Create(ctx context.Context, task *entity.Task) error {
+func (r *PostgresTaskRepository) Create(ctx context.Context, task *entity.TaskEntity) error {
 	_, err := r.db.ExecContext(ctx,
 		"INSERT INTO tasks (id, status, created_at, updated_at) VALUES ($1, $2, $3, $4)",
 		task.ID, task.Status, task.CreatedAt, task.UpdatedAt,
@@ -30,8 +31,8 @@ func (r *PostgresTaskRepository) Create(ctx context.Context, task *entity.Task) 
 	return err
 }
 
-func (r *PostgresTaskRepository) GetByID(ctx context.Context, id string) (*entity.Task, error) {
-	task := &entity.Task{}
+func (r *PostgresTaskRepository) GetByID(ctx context.Context, id string) (*entity.TaskEntity, error) {
+	task := &entity.TaskEntity{}
 	err := r.db.QueryRowContext(ctx,
 		"SELECT id, status, result, error, created_at, updated_at FROM tasks WHERE id = $1",
 		id,
@@ -46,7 +47,7 @@ func (r *PostgresTaskRepository) GetByID(ctx context.Context, id string) (*entit
 	return task, err
 }
 
-func (r *PostgresTaskRepository) Update(ctx context.Context, task *entity.Task) error {
+func (r *PostgresTaskRepository) Update(ctx context.Context, task *entity.TaskEntity) error {
 	_, err := r.db.ExecContext(ctx,
 		`UPDATE tasks SET status = $1, result = $2, error = $3, updated_at = $4 WHERE id = $5`,
 		task.Status,
@@ -58,7 +59,7 @@ func (r *PostgresTaskRepository) Update(ctx context.Context, task *entity.Task) 
 	return err
 }
 
-func (r *PostgresTaskRepository) ListByStatus(ctx context.Context, status entity.TaskStatus) ([]*entity.Task, error) {
+func (r *PostgresTaskRepository) ListByStatus(ctx context.Context, status entity.TaskStatus) ([]*entity.TaskEntity, error) {
 	rows, err := r.db.QueryContext(ctx,
 		"SELECT id, status, result, error, created_at, updated_at FROM tasks WHERE status = $1",
 		status,
@@ -66,11 +67,16 @@ func (r *PostgresTaskRepository) ListByStatus(ctx context.Context, status entity
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func(rows *sql.Rows) {
+		err := rows.Close()
+		if err != nil {
+			log.Fatalf("failed to close rows: %v", err)
+		}
+	}(rows)
 
-	var tasks []*entity.Task
+	var tasks []*entity.TaskEntity
 	for rows.Next() {
-		task := &entity.Task{}
+		task := &entity.TaskEntity{}
 		if err := rows.Scan(
 			&task.ID,
 			&task.Status,

@@ -9,3 +9,9 @@ doc:
 
 test:
 	@go test tests/* --json | jq -r .Output | grep -v null
+
+clean:
+	@docker system prune -a -f
+
+deps:
+	@go get -u ./...

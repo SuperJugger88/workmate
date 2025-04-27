@@ -23,7 +23,7 @@ func (s *TaskService) CreateTask(ctx context.Context) (*domain.Task, error) {
 		return nil, err
 	}
 
-	domainTask := &domain.Task{Task: *entityTask}
+	domainTask := &domain.Task{TaskEntity: *entityTask}
 	go s.processTask(domainTask)
 	return domainTask, nil
 }
@@ -33,7 +33,7 @@ func (s *TaskService) GetTask(ctx context.Context, id string) (*domain.Task, err
 	if err != nil {
 		return nil, err
 	}
-	return &domain.Task{Task: *entityTask}, nil
+	return &domain.Task{TaskEntity: *entityTask}, nil
 }
 
 func (s *TaskService) ListTasksByStatus(ctx context.Context, status entity.TaskStatus) ([]*domain.Task, error) {
@@ -44,7 +44,7 @@ func (s *TaskService) ListTasksByStatus(ctx context.Context, status entity.TaskS
 
 	domainTasks := make([]*domain.Task, len(entityTasks))
 	for i, t := range entityTasks {
-		domainTasks[i] = &domain.Task{Task: *t}
+		domainTasks[i] = &domain.Task{TaskEntity: *t}
 	}
 	return domainTasks, nil
 }
@@ -54,7 +54,7 @@ func (s *TaskService) processTask(task *domain.Task) {
 	defer cancel()
 
 	task.StartProcessing()
-	_ = s.repo.Update(ctx, &task.Task)
+	_ = s.repo.Update(ctx, &task.TaskEntity)
 
 	// Имитация долгой операции
 	select {
@@ -64,5 +64,5 @@ func (s *TaskService) processTask(task *domain.Task) {
 		task.Fail(ctx.Err())
 	}
 
-	_ = s.repo.Update(ctx, &task.Task)
+	_ = s.repo.Update(ctx, &task.TaskEntity)
 }

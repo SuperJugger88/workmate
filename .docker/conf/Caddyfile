@@ -4,6 +4,10 @@
 }
 
 :80 {
+    @app {
+        path /api/v1/*
+        path /metrics
+    }
 
     redir /swagger /swagger/
     handle_path /swagger/* {
@@ -20,8 +24,5 @@
         }
     }
 
-    handle {
-
-        reverse_proxy app:4000
-    }
+    reverse_proxy @app app:4000
 }

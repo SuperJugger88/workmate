@@ -17,7 +17,7 @@ func TestTaskService_GetTask(t *testing.T) {
 	mockRepo := new(mocks.MockTaskRepository)
 	svc := service.NewTaskService(mockRepo)
 
-	expectedTask := &entity.Task{
+	expectedTask := &entity.TaskEntity{
 		ID:        "test-id",
 		Status:    entity.StatusCompleted,
 		CreatedAt: time.Now(),

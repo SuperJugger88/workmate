@@ -17,4 +17,11 @@ var (
 			Name: "task_status",
 			Help: "Status of task in string",
 		})
+
+	HealthStatus = prometheus.NewGauge(
+		prometheus.GaugeOpts{
+			Name: "health_status",
+			Help: "Status of app health",
+		},
+	)
 )

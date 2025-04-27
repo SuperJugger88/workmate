@@ -2,16 +2,17 @@ package main
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
+	"workmate/internal/infrastructure"
 
-	"github.com/gorilla/mux"
 	_ "github.com/lib/pq"
 	"workmate/internal/api"
 	"workmate/internal/repository"
@@ -28,28 +29,24 @@ func main() {
 	if err != nil {
 		log.Fatal("Failed to connect to DB:", err)
 	}
-	defer db.Close()
+	defer func(db *sql.DB) {
+		err := db.Close()
+		if err != nil {
+			log.Fatal("Failed to close DB:", err)
+		}
+	}(db)
 
 	// Регистрируем метрики
 	prometheus.MustRegister(pkg.TaskStatus)
 	prometheus.MustRegister(pkg.RequestDuration)
+	prometheus.MustRegister(pkg.HealthStatus)
 
 	// Инициализация слоев
 	taskRepo := repository.NewTaskRepository(db)
 	taskService := service.NewTaskService(taskRepo)
 	handler := api.NewTaskHandler(taskService)
 
-	// Роутер с Swagger
-	router := mux.NewRouter()
-	router.HandleFunc("/tasks", handler.CreateTask).Methods("POST")
-	router.HandleFunc("/tasks/{id}", handler.GetTaskStatus).Methods("GET")
-	router.HandleFunc("/tasks/status/{status}", handler.ListTasksByStatus).Methods("GET")
-
-	// Swagger
-	router.PathPrefix("/swagger/").Handler(http.StripPrefix("/swagger/", http.FileServer(http.Dir("./docs"))))
-
-	// Metrics
-	http.Handle("/metrics", promhttp.Handler())
+	router := infrastructure.SetupRouter(handler)
 
 	// Сервер
 	server := &http.Server{
@@ -59,7 +56,7 @@ func main() {
 
 	// Graceful shutdown
 	go func() {
-		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			log.Fatalf("Server error: %v", err)
 		}
 	}()

@@ -6,7 +6,7 @@ import (
 )
 
 type Task struct {
-	entity.Task
+	entity.TaskEntity
 }
 
 func (t *Task) StartProcessing() {

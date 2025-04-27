@@ -15,7 +15,7 @@ const (
 	StatusFailed    TaskStatus = "failed"
 )
 
-type Task struct {
+type TaskEntity struct {
 	ID        string     `json:"id"`
 	Status    TaskStatus `json:"status"`
 	Result    string     `json:"result,omitempty"`
@@ -24,8 +24,8 @@ type Task struct {
 	UpdatedAt time.Time  `json:"updated_at"`
 }
 
-func NewTask() *Task {
-	return &Task{
+func NewTask() *TaskEntity {
+	return &TaskEntity{
 		ID:        uuid.New().String(),
 		Status:    StatusPending,
 		CreatedAt: time.Now().UTC(),
